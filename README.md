@@ -133,26 +133,121 @@ ferry --version
 ferry --help
 ```
 
-Then follow the [Quick start](#quick-start) below.
+Then follow the walkthrough below.
 
-## Quick start
+## Demo: end-to-end with git
+
+A realistic flow from a fresh repo to restoring secrets in a new worktree.
+
+### 1. You start with a repo that has env files
 
 ```bash
-# inside your repo
 cd ~/projects/my-monorepo
+ls -A
+# .env  .env.local  apps/api/.env.local  .gitignore  …
+```
 
-# one-time setup
-ferry key generate                  # creates ~/.ferry/keys/default.txt
-ferry init                          # discovers .env files, writes ferry.toml
-git add ferry.toml && git commit    # commit the config (no secrets in it)
+Your `.gitignore` already excludes `.env*` (as it should). These files exist on your disk but not in git.
 
-# whenever your env files change
-ferry snapshot                      # creates v1, v2, v3...
+### 2. Generate an encryption key (once per machine)
 
-# in a new worktree
-git worktree add ../feature-x
-cd ../feature-x
-ferry apply                         # restores .env files
+```bash
+ferry key generate
+# Generated key default at ~/.ferry/keys/default.txt
+# Recipient (public): age1yv4jwgy4j275pshjy2vreejygfc78jrpt3gyj393xrwcpajqeqgqmwgg4k
+```
+
+The private key lives at `~/.ferry/keys/default.txt` with mode `0600`. **Never** commit this file. Treat it like an SSH private key.
+
+### 3. Initialize ferry in the repo
+
+```bash
+ferry init
+# Created /Users/you/projects/my-monorepo/ferry.toml with 3 file(s):
+#   .env
+#   .env.local
+#   apps/api/.env.local
+# Review ferry.toml and remove anything you do not want to snapshot.
+```
+
+Open `ferry.toml` and trim the list if any non-secret files crept in.
+
+### 4. Commit `ferry.toml` so teammates pick it up
+
+`ferry.toml` contains only **paths and metadata** — no secret values. It belongs in git.
+
+```bash
+git add ferry.toml
+git commit -m "Add ferry config for env snapshots"
+git push
+```
+
+### 5. Take your first snapshot
+
+```bash
+ferry snapshot -m "initial"
+# Created snapshot v1 (3 files, key=default)
+#   ~/.ferry/snapshots/my-monorepo/v1
+```
+
+That `v1/env.age` is an age-encrypted tarball. It lives **outside** the repo (under `~/.ferry/`), so it won't accidentally end up in git.
+
+### 6. Edit secrets, snapshot again
+
+```bash
+echo "FEATURE_FLAG=on" >> .env
+ferry snapshot -m "added feature flag"
+# Created snapshot v2 (3 files, key=default)
+
+ferry list
+# VERSION  CREATED                    KEY      FILES  LATEST  MESSAGE
+# v1       2026-05-19T17:00:00+03:00  default  3              initial
+# v2       2026-05-19T17:05:00+03:00  default  3      *       added feature flag
+```
+
+The `*` marks the version `apply` will restore by default.
+
+### 7. Create a new worktree for a feature branch
+
+```bash
+git worktree add ../my-monorepo-feature-x
+cd ../my-monorepo-feature-x
+ls -A
+# ferry.toml is here (from git), but no .env files (gitignored)
+```
+
+### 8. Restore the env files in the new worktree
+
+```bash
+ferry apply
+# Applied snapshot v2 to /Users/you/projects/my-monorepo-feature-x
+#   restored: 3
+#   skipped (already same): 0
+```
+
+The new worktree now has the same env files as your main checkout. Start coding.
+
+### 9. Check for drift before snapshotting again
+
+```bash
+echo "DEBUG=true" >> .env
+ferry diff
+# STATUS    PATH
+# modified  .env
+# same      .env.local
+# same      apps/api/.env.local
+# ferry: drift: snapshot v2 differs from disk
+echo $?       # 1 — useful for pre-commit / CI scripts
+```
+
+When you're ready, `ferry snapshot` again to bump to `v3`.
+
+### Recovering from a bad edit
+
+```bash
+# Accidentally mangled .env? Roll back to the latest snapshot:
+ferry apply --force
+# (your current .env is backed up to ~/.ferry/backups/<project>/<timestamp>/ first)
 ```
 
 ## Onboarding a teammate

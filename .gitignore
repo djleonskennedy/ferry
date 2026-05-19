@@ -1,0 +1,25 @@
+# Go
+*.test
+*.out
+*.exe
+*.dll
+*.so
+*.dylib
+*.prof
+
+# Build / release
+/bin/
+/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ferry's own state during dev
+.ferry/

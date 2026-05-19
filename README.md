@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="ferry logo" width="320">
+  <img src="assets/logo.png" alt="ferry logo" width="480">
 </p>
 
 # ferry
@@ -369,5 +369,5 @@ MIT
 ---
 
 <p align="center">
-  Powered by <a href="https://claude.com/claude-code">Claude Code</a> 😉
+  Powered by <a href="https://claude.com/claude-code">Claude Code</a> 😉 with a small help of Yurii &lt;3
 </p>

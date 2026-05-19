@@ -270,3 +270,9 @@ Best-effort. Tested on macOS and Linux. The `latest` symlink falls back to a `la
 ## License
 
 MIT
+
+---
+
+<p align="center">
+  Powered by <a href="https://claude.com/claude-code">Claude Code</a> 😉
+</p>

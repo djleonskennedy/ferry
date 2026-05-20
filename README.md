@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="ferry logo" width="480">
+  <img src="assets/logo.png" alt="ferry logo" width="720">
 </p>
 
 # ferry
@@ -24,7 +24,7 @@ ferry snapshot -m "rotated db password"
 ferry apply                # restores the latest snapshot
 ```
 
-That's the whole loop. See [Quick start](#quick-start) for a worked example, or `ferry --help`.
+That's the whole loop. See [Demo: end-to-end with git](#demo-end-to-end-with-git) for a worked example, or `ferry --help`.
 
 ## Why
 
